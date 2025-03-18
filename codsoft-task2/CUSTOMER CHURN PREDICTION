@@ -1,0 +1,46 @@
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.preprocessing import StandardScaler, LabelEncoder
+from sklearn.metrics import accuracy_score
+import joblib
+import os
+
+data_path = "/kaggle/input/churnml/Churn_Modelling.csv"
+df = pd.read_csv(data_path)
+
+df.drop(['RowNumber', 'CustomerId', 'Surname'], axis=1, inplace=True)
+
+label_encoders = {}
+for col in ['Geography', 'Gender']:
+    le = LabelEncoder()
+    df[col] = le.fit_transform(df[col])
+    label_encoders[col] = le
+
+X = df.drop(columns=['Exited'])
+y = df['Exited']
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
+model = LogisticRegression()
+model.fit(X_train, y_train)
+
+y_pred = model.predict(X_test)
+accuracy = accuracy_score(y_test, y_pred)
+print(f'Model Accuracy: {accuracy:.4f}')
+
+output_dir = "/kaggle/working/"
+os.makedirs(output_dir, exist_ok=True)
+
+model_path = os.path.join(output_dir, "model.pkl")
+scaler_path = os.path.join(output_dir, "scaler.pkl")
+
+joblib.dump(model, model_path)
+joblib.dump(scaler, scaler_path)
+
+print("kaggle kernels output janasruthin/CUSTOMER CHURN PREDICTION/kaggle/working/")
